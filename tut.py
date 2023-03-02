@@ -86,6 +86,22 @@ def split_input(sequence):
     target_text = sequence[1:]
     return input_text, target_text
 
+# generate and print out text from model
+def generate_and_print(constant, one_step_model):
+    start = time.time()
+    states = None
+    next_char = tf.constant([constant])
+    result = [next_char]
+
+    for n in range(1000):
+        next_char, states = one_step_model.generate_one_step(next_char, states=states)
+        result.append(next_char)
+
+    result = tf.strings.join(result)
+    end = time.time()
+    print(result[0].numpy().decode('utf-8'), '\n\n' + '_'*80)
+    print('\nRun time:', end - start)
+
 
 if __name__ == "__main__":
     text = open('puss_2.txt', 'rb').read().decode(encoding='UTF-8')
@@ -93,59 +109,30 @@ if __name__ == "__main__":
     
 
     # ----------------------------------PART 1: Initialize some variables----------------------------------
-    # show each unique char
-    vocab = sorted(set(text))
-    print(vocab)
+    # vocab
+    # chars
+    # ids
 
-    # vectorize
-    # split the text into tokens
-    chars = tf.strings.unicode_split(text, input_encoding='UTF-8')
-    print(chars)
 
-    # now a function to convert each character into a numeric ID
-    ids_from_chars = tf.keras.layers.StringLookup(
-        vocabulary=list(vocab), mask_token=None # https://www.tensorflow.org/guide/keras/masking_and_padding
-    )
-    ids = ids_from_chars(chars)
-    print(ids)
-
-    # we are going to need a way to convert the IDs back to char vectors
-    chars_from_ids = tf.keras.layers.StringLookup(
-        vocabulary=ids_from_chars.get_vocabulary(), invert=True, mask_token=None
-    )
-    chars = chars_from_ids(ids)
-    print(chars)
+    # get ids from chars
+    # get chars from ids
+        # get text from ids - print out readable text
 
 
     # ----------------------------------PART 2: Create the dataset----------------------------------
     # convert text vector into a stream of character indices using ids
-    ids_dataset = tf.data.Dataset.from_tensor_slices(ids)
-
-    # example use
-    for ids in ids_dataset.take(5):
-        print(chars_from_ids(ids).numpy().decode('utf-8')) # see that this is char by char
     
-    # using 'batch' method we can convert individual chars to sequences of any length
-    seq_length = 100
-    sequences = ids_dataset.batch(seq_length+1, drop_remainder=True)
 
-    # example use
-    for seq in sequences.take(1):
-        print(chars_from_ids(seq))
-        print(text_from_ids(seq).numpy())
+    # using 'batch' method we can convert individual chars to sequences of any length
+
 
     # need a paired dataset - input (seq), label(seq) pairs
     # (used for training/testing)
     # split_input()
-    print(split_input(list("Horton Hears a Who!")))
+
 
     # now split the dataset into pairs 
-    dataset = sequences.map(split_input)
 
-    # use example of dataset
-    for input_example, target_example in dataset.take(1):
-        print("Input :", text_from_ids(input_example).numpy())
-        print("Target:", text_from_ids(target_example).numpy())
 
     # create training batches
     # goal: shuffle data, pack into batches
@@ -172,60 +159,28 @@ if __name__ == "__main__":
         rnn_units=rnn_units)
     
     # test the (untrained) model
-    for input_ex, target_ex in dataset.take(1):
-        ex_pred = model(input_ex)
-        print(ex_pred.shape)
-    model.summary()
+
 
     # let's see what our predictions look like
-    sampled_indices = tf.random.categorical(ex_pred[0], num_samples=1)
-    sampled_indices = tf.squeeze(sampled_indices, axis=-1).numpy()
-    print("Next Char Predictions:", text_from_ids(sampled_indices).numpy())
+    
 
     # we need a loss function to see the 'accuracy' of the model
-    loss = tf.losses.SparseCategoricalCrossentropy(from_logits=True)
-    ex_pred_loss = loss(target_ex, ex_pred)
-    print("Example Mean loss:", ex_pred_loss)
-
-    # note that our exp(loss) should be approx equal to vocab size
-    print(tf.exp(ex_pred_loss).numpy())
-    
+   
 
     # ----------------------------------PART 4: Train the model----------------------------------
     # add optimizer, loss function
-    model.compile(optimizer='adam', loss=loss)
+    
 
     # configure checkpoints for training
-    # DIR
-    checkpoint_dir = './training_checkpoints'
-    # Name
-    checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt_{epoch}")
-    
-    checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
-        filepath=checkpoint_prefix,
-        save_weights_only=True)
+
     
     # run the training
-    EPOCHS = 10
-    history = model.fit(dataset, epochs=EPOCHS, callbacks=[checkpoint_callback])
-
-    one_step_model = OneStep(model, chars_from_ids, ids_from_chars)
-
-
-    # ----------------------------------PART 5: Generate Text----------------------------------
-    start = time.time()
-    states = None
-    next_char = tf.constant(['PUSS:'])
-    result = [next_char]
-
-    for n in range(1000):
-        next_char, states = one_step_model.generate_one_step(next_char, states=states)
-        result.append(next_char)
-
-    result = tf.strings.join(result)
-    end = time.time()
-    print(result[0].numpy().decode('utf-8'), '\n\n' + '_'*80)
-    print('\nRun time:', end - start)
+    
 
     # save the model
     tf.saved_model.save(one_step_model, 'one_step')
+
+    # ----------------------------------PART 5: Generate Text----------------------------------
+    # head to test.py
+    generate_and_print("P", one_step_model)
+
