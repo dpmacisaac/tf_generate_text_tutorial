@@ -184,3 +184,15 @@ if __name__ == "__main__":
     # head to test.py
     generate_and_print("P", one_step_model)
 
+
+'''
+improving model tips:
+-run more epochs
+-adjust batch, buffer size (trial and error)
+-change start char -> string
+-add another RNN layer
+-adjust temperature parameter 
+  -higher temp = more diversity, more silliness and mistakes
+  -lower temp = more accurate, less 'newness'
+    -most people just use 1
+'''
