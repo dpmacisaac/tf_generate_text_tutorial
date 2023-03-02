@@ -10,11 +10,11 @@ import time
 class textModel(tf.keras.Model):
   def __init__(self, vocab_size, embedding_dim, rnn_units):
     super().__init__(self)
-    self.embedding = tf.keras.layers.Embedding(vocab_size, embedding_dim)
+    self.embedding = tf.keras.layers.Embedding(vocab_size, embedding_dim) # input layer
     self.gru = tf.keras.layers.GRU(rnn_units,
                                    return_sequences=True,
-                                   return_state=True)
-    self.dense = tf.keras.layers.Dense(vocab_size)
+                                   return_state=True) # RNN
+    self.dense = tf.keras.layers.Dense(vocab_size) # output layer
 
   def call(self, inputs, states=None, return_state=False, training=False):
     x = inputs
@@ -110,11 +110,17 @@ if __name__ == "__main__":
 
     # ----------------------------------PART 1: Initialize some variables----------------------------------
     # vocab
+
+
     # chars
-    # ids
 
 
     # get ids from chars
+
+
+    # ids
+
+    
     # get chars from ids
         # get text from ids - print out readable text
 
@@ -149,14 +155,7 @@ if __name__ == "__main__":
 
     # ----------------------------------PART 3: Build the bare bones model----------------------------------
     # model parameters to be used later
-    vocab_size = len(ids_from_chars.get_vocabulary())
-    embedding_dim = 256
-    rnn_units = 1024
-
-    model = textModel(
-        vocab_size=vocab_size,
-        embedding_dim=embedding_dim,
-        rnn_units=rnn_units)
+    
     
     # test the (untrained) model
 
