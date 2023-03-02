@@ -6,5 +6,3 @@ Tutorial for tf text model used to generate new text character by character via 
 Run more epochs for more 'accurate' generation
 
 Trained on the script of "Puss in Boots: The Last Wish"
-
-Finished code contains a model with 30 epochs (still not great)
